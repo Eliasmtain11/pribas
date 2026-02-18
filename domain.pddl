@@ -5,7 +5,7 @@
   (:predicates
     (generator-ran)
     (available ?t - tank)
-    (idle ?g - generator)     ; reemplaza (not (refueling ?g))
+    (idle ?g - generator)
   )
 
   (:functions
@@ -13,7 +13,6 @@
     (capacity ?g - generator)
   )
 
-  ;; Generar: consumo discreto al final
   (:durative-action generate
     :parameters (?g - generator)
     :duration (= ?duration 10)
@@ -29,14 +28,13 @@
             )
   )
 
-  ;; Refuel: recarga discreta al final, sin negación en precondiciones
   (:durative-action refuel
     :parameters (?g - generator ?t - tank)
     :duration (= ?duration 2)
     :condition (and
                  (at start (idle ?g))
                  (at start (available ?t))
-                 (at start (< (fuelLevel ?g) (capacity ?g)))
+                 (at start (< (fuelLevel ?g) 10))   ; <- CAMBIO AQUÍ
                )
     :effect (and
               (at start (not (idle ?g)))
@@ -47,3 +45,4 @@
             )
   )
 )
+
