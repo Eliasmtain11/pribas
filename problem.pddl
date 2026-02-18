@@ -8,5 +8,5 @@
     (idle gen)
   )
   (:goal (generator-ran))
-  (:metric minimize (total-time))
 )
+
