@@ -1,58 +1,49 @@
-(define (domain zeno-travel-dino)
-  (:requirements :strips :typing)
-
-  (:types
-    box robot place
-  )
+(define (domain mini-generator)
+  (:requirements :fluents :durative-actions :typing)
+  (:types generator tank)
 
   (:predicates
-    (at-box ?b - box ?p - place)
-    (at-robot ?r - robot ?p - place)
-    (in ?b - box ?r - robot)
-    (free ?r - robot)
-    (not_free ?r - robot)
-    (connected ?from - place ?to - place)
+    (generator-ran)
+    (available ?t - tank)
+    (idle ?g - generator)     ; reemplaza (not (refueling ?g))
   )
 
-  (:action pick
-    :parameters (?b - box ?r - robot ?p - place)
-    :precondition (and
-      (at-box ?b ?p)
-      (at-robot ?r ?p)
-      (free ?r)
-    )
-    :effect (and
-      (not (at-box ?b ?p))
-      (in ?b ?r)
-      (not (free ?r))
-      (not_free ?r)
-    )
+  (:functions
+    (fuelLevel ?g - generator)
+    (capacity ?g - generator)
   )
 
-  (:action drop
-    :parameters (?b - box ?r - robot ?p - place)
-    :precondition (and
-      (in ?b ?r)
-      (at-robot ?r ?p)
-      (not_free ?r)
-    )
+  ;; Generar: consumo discreto al final
+  (:durative-action generate
+    :parameters (?g - generator)
+    :duration (= ?duration 10)
+    :condition (and
+                 (at start (idle ?g))
+                 (at start (>= (fuelLevel ?g) 10))
+               )
     :effect (and
-      (not (in ?b ?r))
-      (at-box ?b ?p)
-      (free ?r)
-      (not (not_free ?r))
-    )
+              (at start (not (idle ?g)))
+              (at end (decrease (fuelLevel ?g) 10))
+              (at end (generator-ran))
+              (at end (idle ?g))
+            )
   )
 
-  (:action move
-    :parameters (?r - robot ?p1 - place ?p2 - place)
-    :precondition (and
-      (at-robot ?r ?p1)
-      (connected ?p1 ?p2)
-    )
+  ;; Refuel: recarga discreta al final, sin negación en precondiciones
+  (:durative-action refuel
+    :parameters (?g - generator ?t - tank)
+    :duration (= ?duration 2)
+    :condition (and
+                 (at start (idle ?g))
+                 (at start (available ?t))
+                 (at start (< (fuelLevel ?g) (capacity ?g)))
+               )
     :effect (and
-      (not (at-robot ?r ?p1))
-      (at-robot ?r ?p2)
-    )
+              (at start (not (idle ?g)))
+              (at start (not (available ?t)))
+              (at end (increase (fuelLevel ?g) 10))
+              (at end (available ?t))
+              (at end (idle ?g))
+            )
   )
 )
